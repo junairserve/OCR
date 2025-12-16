@@ -1,14 +1,15 @@
-# OCR 紐づけアプリ（UI v2）
+# SN紐づけツール（完全版 v3）
 
-## v2の狙い（スマホ最適化）
-- カメラ映像を最上部に固定し、スクロール不要で「どこを合わせるか」が常に分かる
-- 撮影ボタンを映像直下に特大化
-- 画面下の固定バーに「保存」「全リセット」を配置（親指操作）
-- iPhone Safariのカメラ起動失敗にフォールバックで対応
+## v3で追加
+- 管理者画面：本体SNの「在庫へ戻す」（修理戻り）をワンクリック化
+- EVENT_LOG：ステータス変更履歴（いつ/誰/From→To/備考）
 
-## GitHub Pages
-- `index.html / app.js / styles.css` を公開フォルダに置いてください。
-- 既存の `/OCR/` に上書きするなら、同名ファイルを置き換えればOKです。
+## 画面
+- 現場：WebアプリURL
+- 管理者：WebアプリURL + `?page=admin`
 
-## 基板番号パターンの調整
-- `app.js` の `extractPcb()` の正規表現を基板仕様に合わせて調整してください。
+## シート
+- PCB_MASTER: pcb_sn, received_date, status, note, imported_at
+- BODY_MASTER: body_sn, model, status, note, updated_at
+- LINK_LOG:   timestamp_jst, body_sn, pcb_sn, work_type, operator, note
+- EVENT_LOG:  timestamp_jst, kind, sn, from_status, to_status, operator, note

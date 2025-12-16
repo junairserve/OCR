@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title><?= appTitle ?></title>
+<style>
+:root{--card:#121a26;--muted:#93a4b8;--text:#eaf2ff;--border:#223047;--ok:#7CFF8B;--bad:#ff6b6b;}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans JP","Yu Gothic";background:linear-gradient(180deg,#0b0f16,#0a1220);color:var(--text)}
+header{position:sticky;top:0;background:rgba(11,15,22,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:14px 12px}
+h1{margin:0;font-size:18px}.sub{margin:4px 0 0;color:var(--muted);font-size:12px}
+main{max-width:820px;margin:0 auto;padding:12px}
+.card{background:rgba(18,26,38,.92);border:1px solid var(--border);border-radius:16px;padding:14px;margin:10px 0}
+h2{margin:0 0 10px;font-size:15px}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
+input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0b1220;color:var(--text);font-size:16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{border:1px solid var(--border);background:#0f1622;color:var(--text);padding:12px 14px;border-radius:14px;font-size:15px;cursor:pointer}
+button.primary{background:linear-gradient(180deg,#1a3048,#102338);border-color:#2a4568}
+button:disabled{opacity:.45;cursor:not-allowed}
+.status{margin-top:10px;font-size:13px;color:var(--muted)}.status.ok{color:var(--ok)}.status.bad{color:var(--bad)}
+.tiny{font-size:11px;color:var(--muted)}a{color:#4dd4ff;text-decoration:none}
+.pill{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px}
+</style>
+</head><body>
+<header><h1>SN紐づけ（選択式）</h1><p class="sub">本体は「在庫のみ」、基板は「未使用のみ」表示します</p></header>
+<main>
+<section class="card">
+  <div class="row" style="justify-content:space-between">
+    <h2>本体SN</h2><span class="pill">在庫</span>
+  </div>
+  <label>検索（部分一致）</label>
+  <input id="qBody" inputmode="numeric" placeholder="例：0000"/>
+  <label>選択</label>
+  <select id="selBody"></select>
+  <div class="tiny">※ BODY_MASTER の status=在庫 のみ</div>
+</section>
+
+<section class="card">
+  <div class="row" style="justify-content:space-between">
+    <h2>基板SN</h2><span class="pill">未使用</span>
+  </div>
+  <label>検索（部分一致）</label>
+  <input id="qPcb" inputmode="numeric" placeholder="例：0000"/>
+  <label>選択</label>
+  <select id="selPcb"></select>
+  <div class="tiny">※ PCB_MASTER の status=未使用 のみ</div>
+</section>
+
+<section class="card">
+  <h2>保存</h2>
+  <div class="row">
+    <label style="flex:1">作業区分
+      <select id="workType">
+        <option value="組立">組立</option><option value="検査">検査</option>
+        <option value="基板交換">基板交換</option><option value="修理">修理</option>
+        <option value="その他">その他</option>
+      </select>
+    </label>
+    <label style="flex:1">作業者
+      <input id="operator" placeholder="例：山田" autocomplete="name"/>
+    </label>
+  </div>
+  <label>備考（任意）</label>
+  <input id="note" placeholder="例：外観OK"/>
+  <div class="row" style="margin-top:12px">
+    <button id="btnSave" class="primary" disabled>✅ 保存（紐づけ完了）</button>
+    <button id="btnReload">🔄 再読み込み</button>
+    <a class="tiny" href="?page=admin">管理者画面</a>
+  </div>
+  <div id="status" class="status">準備中…</div>
+</section>
+<p class="tiny">© AIRSERVE.Co.,Ltd.</p>
+</main>
+
+<script>
+const $ = (id)=>document.getElementById(id);
+function setStatus(msg, kind=null){
+  const el = $("status");
+  el.textContent = msg;
+  el.className = "status" + (kind==="ok" ? " ok" : kind==="bad" ? " bad" : "");
+}
+function apiUrl(params){
+  const u = new URL(window.location.href);
+  u.searchParams.set("api","1");
+  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+  return u.toString();
+}
+async function loadBodies(q=""){
+  const res = await fetch(apiUrl({action:"list_body", status:"在庫", q, limit:"600"}));
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error||"list_body failed");
+  const sel = $("selBody"); sel.innerHTML = "";
+  j.rows.forEach(r=>{
+    const opt = document.createElement("option");
+    opt.value = r.body_sn;
+    opt.textContent = r.body_sn + (r.model ? ` (${r.model})` : "");
+    sel.appendChild(opt);
+  });
+}
+async function loadPcbs(q=""){
+  const res = await fetch(apiUrl({action:"list_pcb", status:"未使用", q, limit:"800"}));
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error||"list_pcb failed");
+  const sel = $("selPcb"); sel.innerHTML = "";
+  j.rows.forEach(r=>{
+    const opt = document.createElement("option");
+    opt.value = r.pcb_sn;
+    opt.textContent = r.pcb_sn + (r.received_date ? `（${r.received_date}）` : "");
+    sel.appendChild(opt);
+  });
+}
+function updateSaveEnabled(){ $("btnSave").disabled = !($("selBody").value && $("selPcb").value); }
+async function saveLink(){
+  const payload = {
+    body_sn: $("selBody").value,
+    pcb_sn: $("selPcb").value,
+    work_type: $("workType").value,
+    operator: $("operator").value.trim(),
+    note: $("note").value.trim(),
+  };
+  setStatus("保存中…");
+  const res = await fetch(window.location.href, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ action:"link", payload }),
+  });
+  const j = await res.json();
+  if(!j.ok){ setStatus("保存失敗：" + (j.error||""), "bad"); return; }
+  setStatus("保存しました（本体=使用中 / 基板=使用中 に更新済み）", "ok");
+  await Promise.all([
+    loadBodies($("qBody").value.trim()),
+    loadPcbs($("qPcb").value.trim()),
+  ]);
+  updateSaveEnabled();
+}
+let t1=null, t2=null;
+function wire(){
+  $("btnSave").addEventListener("click", saveLink);
+  $("btnReload").addEventListener("click", async()=>{ setStatus("再読み込み中…"); await init(); });
+  $("selBody").addEventListener("change", updateSaveEnabled);
+  $("selPcb").addEventListener("change", updateSaveEnabled);
+  $("qBody").addEventListener("input", ()=>{
+    clearTimeout(t1);
+    t1=setTimeout(()=>loadBodies($("qBody").value.trim()).then(updateSaveEnabled).catch(e=>setStatus("本体SN読込エラー："+e.message,"bad")), 250);
+  });
+  $("qPcb").addEventListener("input", ()=>{
+    clearTimeout(t2);
+    t2=setTimeout(()=>loadPcbs($("qPcb").value.trim()).then(updateSaveEnabled).catch(e=>setStatus("基板SN読込エラー："+e.message,"bad")), 250);
+  });
+}
+async function init(){
+  try{
+    await Promise.all([loadBodies(""), loadPcbs("")]);
+    updateSaveEnabled();
+    setStatus("準備OK。選択して保存してください。");
+  }catch(e){
+    setStatus("初期化エラー："+e.message+"（管理者画面で取込/登録してください）","bad");
+  }
+}
+wire(); init();
+</script>
+</body></html>

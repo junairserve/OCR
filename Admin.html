@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ja"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title><?= appTitle ?>（管理者）</title>
+<style>
+:root{--card:#121a26;--muted:#93a4b8;--text:#eaf2ff;--border:#223047;--ok:#7CFF8B;--bad:#ff6b6b;}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Noto Sans JP","Yu Gothic";background:linear-gradient(180deg,#0b0f16,#0a1220);color:var(--text)}
+header{position:sticky;top:0;background:rgba(11,15,22,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:14px 12px}
+h1{margin:0;font-size:18px}.sub{margin:4px 0 0;color:var(--muted);font-size:12px}
+main{max-width:1080px;margin:0 auto;padding:12px}
+.card{background:rgba(18,26,38,.92);border:1px solid var(--border);border-radius:16px;padding:14px;margin:10px 0}
+h2{margin:0 0 10px;font-size:15px}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
+input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0b1220;color:var(--text);font-size:15px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+button{border:1px solid var(--border);background:#0f1622;color:var(--text);padding:10px 12px;border-radius:14px;font-size:14px;cursor:pointer}
+button.primary{background:linear-gradient(180deg,#1a3048,#102338);border-color:#2a4568}
+button.warn{background:linear-gradient(180deg,#3b2a1a,#2a1d12);border-color:#6a4b2a}
+button:disabled{opacity:.45;cursor:not-allowed}
+.status{margin-top:10px;font-size:13px;color:var(--muted)}.status.ok{color:var(--ok)}.status.bad{color:var(--bad)}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border-bottom:1px solid var(--border);padding:8px;text-align:left;font-size:13px}
+.tiny{font-size:11px;color:var(--muted)}a{color:#4dd4ff;text-decoration:none}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:12px}
+</style>
+</head><body>
+<header>
+  <h1>管理者画面</h1>
+  <p class="sub">修理戻り「在庫へ戻す」・ステータス変更履歴（EVENT_LOG）</p>
+</header>
+<main>
+
+<section class="card">
+  <div class="row" style="justify-content:space-between">
+    <h2>0) 画面リンク</h2>
+    <a href="./">← 現場画面へ</a>
+  </div>
+  <div class="tiny">※ Excel取込（基板/本体）は v2 と同様に Admin に追加できます。まずは修理戻り運用を最優先で実装しています。</div>
+</section>
+
+<section class="card">
+  <div class="row" style="justify-content:space-between">
+    <h2>1) 修理戻り：在庫へ戻す（ワンクリック）</h2>
+    <span class="pill">本体SNのみ</span>
+  </div>
+
+  <div class="row">
+    <label style="flex:1">作業者（任意）<input id="rtOperator" placeholder="例：山田"></label>
+    <label style="flex:2">備考（任意）<input id="rtNote" placeholder="例：基板交換済み。最終検査OK"></label>
+  </div>
+
+  <div class="row">
+    <label style="flex:1">本体SN（8桁）<input id="rtSn" inputmode="numeric" placeholder="00000001"></label>
+    <button id="btnReturn" class="warn">↩ 在庫へ戻す</button>
+    <span class="tiny">押すと status=在庫 に更新し、EVENT_LOGに履歴を残します</span>
+  </div>
+  <div id="rtMsg" class="status"></div>
+
+  <hr style="border:0;border-top:1px solid var(--border);margin:14px 0">
+
+  <div class="row">
+    <label style="flex:1">本体SN検索（部分一致）<input id="rtSearch" inputmode="numeric" placeholder="例：1234"></label>
+    <button id="btnRtLoad" class="primary">🔎 一覧表示</button>
+  </div>
+  <div class="tiny">使用中/修理中のものを探して、その場で「在庫へ戻す」できます。</div>
+
+  <div style="overflow:auto">
+    <table id="rtTbl">
+      <thead><tr><th>本体SN</th><th>モデル</th><th>ステータス</th><th>操作</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <h2>2) 履歴（ステータス変更：EVENT_LOG）</h2>
+  <div class="row">
+    <label style="flex:1">From（yyyy-mm-dd）<input id="evFrom" placeholder="2025-12-01"/></label>
+    <label style="flex:1">To（yyyy-mm-dd）<input id="evTo" placeholder="2025-12-31"/></label>
+    <label style="flex:1">SN検索（任意）<input id="evQ" inputmode="numeric" placeholder="例：0000"/></label>
+    <button id="btnEvLoad" class="primary">🔎 表示</button>
+    <button id="btnEvCsv">⬇ CSV</button>
+  </div>
+  <div id="evMsg" class="status"></div>
+  <div style="overflow:auto">
+    <table id="evTbl"><thead><tr><th>日時</th><th>種別</th><th>SN</th><th>From</th><th>To</th><th>作業者</th><th>備考</th></tr></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<p class="tiny">© AIRSERVE.Co.,Ltd.</p>
+</main>
+
+<script>
+const $=(id)=>document.getElementById(id);
+function setMsg(id,msg,kind=null){
+  const el=$(id);
+  el.textContent=msg;
+  el.className="status"+(kind==="ok"?" ok":kind==="bad"?" bad":"");
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function normalizeSn8(sn){
+  let s=(sn??"").toString().trim();
+  s=s.replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0));
+  s=s.replace(/[^0-9]/g,"");
+  if(!s) return "";
+  if(s.length>8) s=s.slice(-8);
+  return s.padStart(8,"0");
+}
+async function post(action, payload){
+  const res=await fetch(window.location.href,{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify(Object.assign({action}, payload||{}))
+  });
+  return await res.json();
+}
+function apiUrl(params){
+  const u=new URL(window.location.href);
+  u.searchParams.set("api","1");
+  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+  return u.toString();
+}
+
+/* ===== Return to stock ===== */
+async function returnToStock(sn){
+  const operator=$("rtOperator").value.trim();
+  const note=$("rtNote").value.trim() || "修理戻り：在庫へ戻す";
+  return await post("update_status",{kind:"body", sn, status:"在庫", operator, note});
+}
+$("btnReturn").addEventListener("click", async()=>{
+  const sn=normalizeSn8($("rtSn").value);
+  if(!sn){ setMsg("rtMsg","SNを入力してください","bad"); return; }
+  setMsg("rtMsg","更新中…");
+  const j=await returnToStock(sn);
+  if(!j.ok){ setMsg("rtMsg","失敗："+(j.error||""),"bad"); return; }
+  setMsg("rtMsg",`更新しました（${sn}：${j.from_status} → ${j.to_status}）`,"ok");
+  await loadReturnList();
+});
+
+async function loadReturnList(){
+  const q=$("rtSearch").value.trim();
+  const res=await fetch(apiUrl({action:"list_body", status:"", q, limit:"500"}));
+  const j=await res.json();
+  const tbody=$("rtTbl").querySelector("tbody"); tbody.innerHTML="";
+  if(!j.ok){ setMsg("rtMsg","一覧取得失敗："+(j.error||""),"bad"); return; }
+  j.rows.forEach(r=>{
+    const disabled = (r.status==="在庫");
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${escapeHtml(r.body_sn)}</td><td>${escapeHtml(r.model||"")}</td><td>${escapeHtml(r.status||"")}</td>
+      <td><button class="warn" data-sn="${r.body_sn}" ${disabled?"disabled":""}>↩ 在庫へ戻す</button></td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll("button[data-sn]").forEach(b=>{
+    b.addEventListener("click", async()=>{
+      const sn=b.getAttribute("data-sn");
+      setMsg("rtMsg",`更新中…（${sn}）`);
+      const j2=await returnToStock(sn);
+      if(!j2.ok){ setMsg("rtMsg","失敗："+(j2.error||""),"bad"); return; }
+      setMsg("rtMsg",`更新しました（${sn}：${j2.from_status} → ${j2.to_status}）`,"ok");
+      await loadReturnList();
+    });
+  });
+}
+$("btnRtLoad").addEventListener("click", loadReturnList);
+
+/* ===== Event log ===== */
+$("btnEvLoad").addEventListener("click", async()=>{
+  const from=$("evFrom").value.trim();
+  const to=$("evTo").value.trim();
+  const q=$("evQ").value.trim();
+  setMsg("evMsg","読み込み中…");
+  const res=await fetch(apiUrl({action:"list_event", from, to, q, limit:"2000"}));
+  const j=await res.json();
+  if(!j.ok){ setMsg("evMsg","失敗："+(j.error||""),"bad"); return; }
+  const tbody=$("evTbl").querySelector("tbody"); tbody.innerHTML="";
+  j.rows.forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${escapeHtml(r.timestamp_jst)}</td><td>${escapeHtml(r.kind)}</td><td>${escapeHtml(r.sn)}</td><td>${escapeHtml(r.from_status)}</td><td>${escapeHtml(r.to_status)}</td><td>${escapeHtml(r.operator)}</td><td>${escapeHtml(r.note)}</td>`;
+    tbody.appendChild(tr);
+  });
+  setMsg("evMsg",`表示件数：${j.rows.length}`,"ok");
+});
+$("btnEvCsv").addEventListener("click", ()=>{
+  const from=$("evFrom").value.trim();
+  const to=$("evTo").value.trim();
+  const q=$("evQ").value.trim();
+  const u=new URL(window.location.href);
+  u.searchParams.set("api","1"); u.searchParams.set("action","export_event_csv");
+  if(from) u.searchParams.set("from",from);
+  if(to) u.searchParams.set("to",to);
+  if(q) u.searchParams.set("q",q);
+  window.open(u.toString(), "_blank");
+});
+
+loadReturnList();
+</script>
+</body></html>
