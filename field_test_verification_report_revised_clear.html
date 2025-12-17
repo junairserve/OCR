@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>新型機ガイドレシーバー フィールドテスト検証レポート</title>
+  <style>
+    body{
+      font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif;
+      margin:0; padding:20px; background:#f5f5f5; line-height:1.8;
+    }
+    .container{
+      max-width:1200px; margin:0 auto; background:#fff; padding:40px;
+      box-shadow:0 0 10px rgba(0,0,0,.1);
+    }
+    .header{ border-bottom:4px solid #2c3e50; padding-bottom:20px; margin-bottom:24px; }
+    h1{ color:#2c3e50; font-size:28px; margin:0 0 10px 0; }
+    h2{
+      color:#34495e; font-size:22px; margin-top:40px; margin-bottom:16px;
+      border-left:5px solid #3498db; padding-left:15px;
+    }
+    h3{ color:#555; font-size:18px; margin-top:22px; margin-bottom:10px; }
+    .meta-info{ color:#7f8c8d; font-size:14px; margin-bottom:10px; }
+    .note{
+      background:#e8f4f8; border-left:4px solid #3498db; padding:14px 18px; margin:16px 0;
+      font-size:14px;
+    }
+    .disclaimer{
+      font-size:13px; color:#666; margin:14px 0 0 0;
+    }
+    .metric-grid{
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; margin:18px 0 10px 0;
+    }
+    .metric-card{
+      color:#fff; padding:18px 18px; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,.08);
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    }
+    .metric-card.info{ background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%); }
+    .metric-card.neutral{ background:linear-gradient(135deg,#36d1dc 0%,#5b86e5 100%); }
+    .metric-label{ font-size:13px; opacity:.92; }
+    .metric-value{ font-size:30px; font-weight:800; margin:8px 0; }
+    .info-box{
+      background:#f8f9fa; padding:18px; border-left:4px solid #6c757d; margin:16px 0;
+    }
+    .pill{
+      display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700;
+      background:#eef2ff; color:#2c3e50; border:1px solid #dbe2ff;
+    }
+    .observation-table{
+      width:100%; border-collapse:collapse; margin:12px 0 18px 0;
+    }
+    .observation-table th{
+      background:#34495e; color:#fff; padding:12px; text-align:left; font-weight:800;
+    }
+    .observation-table td{ padding:12px; border-bottom:1px solid #ddd; vertical-align:top; }
+    .observation-table tr:hover{ background:#f5f5f5; }
+    .kpi-table td:first-child{ width:34%; }
+    .section-divider{
+      height:2px; background:linear-gradient(to right,#3498db,transparent); margin:34px 0 14px 0;
+    }
+    .list{
+      margin:8px 0 0 18px;
+    }
+    .list li{ margin:6px 0; }
+    .foot{
+      margin-top:34px; padding-top:18px; border-top:2px solid #ecf0f1;
+      text-align:center; color:#7f8c8d; font-size:12px;
+    }
+    .subtle{
+      color:#6b7280; font-size:13px;
+    }
+    @media (max-width:640px){
+      body{ padding:12px; }
+      .container{ padding:20px; }
+      .metric-value{ font-size:26px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>新型機ガイドレシーバー フィールドテスト検証レポート</h1>
+      <div class="meta-info">
+        検証期間: 2025年11月30日 ～ 2025年12月08日<br>
+        検証地域: イタリア、スペイン<br>
+        作成日: 2025年12月11日
+      </div>
+      <div class="disclaimer">
+        ※ 本レポート内の<strong>数値・割合は、特記なき限り「TX新型」</strong>の結果を示します。<br>
+        ※ 既存機（TX800白・TX700青）は<strong>参考比較（観察）</strong>として扱い、サンプル数が少ないため本レポートでは<strong>数値比較を主張しません</strong>。
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>📋 目的</strong><br>
+      欧州の実環境（ツアー運用を想定）で、新型送信機（TX新型）の通信特性（安定性・距離・干渉回避）を整理し、
+      運用ガイドライン（出力・距離・チャンネル）に落とし込む。
+    </div>
+
+    <h2>1. 検証結果 <span class="pill">TX新型の結果</span></h2>
+    <div class="metric-grid">
+      <div class="metric-card neutral">
+        <div class="metric-label">TX新型 検証ロケーション</div>
+        <div class="metric-value">28 ﾛｹｰｼｮﾝ</div>
+        <div class="metric-label">全体35回のうち主データ</div>
+      </div>
+      <div class="metric-card info">
+        <div class="metric-label">通信結果</div>
+        <div class="metric-value">75%</div>
+        <div class="metric-label">OK 21回 / PU（何らかの干渉） 7回</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">平均通信距離（TX新型）</div>
+        <div class="metric-value">71.5m</div>
+        <div class="metric-label">最大 138m（見通し良好時）</div>
+      </div>
+      <div class="metric-card info">
+        <div class="metric-label">標準推奨</div>
+        <div class="metric-value">出力5</div>
+        <div class="metric-label">通常ツアー距離 20〜40m で安定</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <ul class="list">
+        <li><strong>標準運用：</strong>出力5（12mW）を基本。通常ツアー距離（20〜40m）では十分対応可能。</li>
+        <li><strong>干渉が疑われる環境：</strong>チャンネル変更（例：1/7/10/11）で改善するケースを確認。</li>
+        <li><strong>人混み：</strong>影響は想定より小さく、遮蔽物・建物・他社機器の干渉要因が大きい。</li>
+      </ul>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h2>2. 検証条件（定義と前提）</h2>
+    <table class="observation-table kpi-table">
+      <thead>
+        <tr><th>項目</th><th>内容</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>検証対象（主）</strong></td>
+          <td><strong>TX新型</strong></td>
+        </tr>
+        <tr>
+          <td><strong>検証対象（参考）</strong></td>
+          <td>TX800白 / TX700青（観察メモとして記載。）</td>
+        </tr>
+        <tr>
+          <td><strong>評価区分</strong></td>
+          <td>
+            OK：クリアに聞き取れる状態<br>
+            PU：一時的な途切れや干渉があるが確認された状態
+          </td>
+        </tr>
+        <tr>
+          <td><strong>環境タイプ</strong></td>
+          <td>屋内 / 屋外（建物多い）/ 屋外（見通し良好）/ その他</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-divider"></div>
+
+    <h2>3. 主要結果（TX新型のみ）</h2>
+
+    <h3>3.1 通信状態（OK / PU）</h3>
+    <table class="observation-table">
+      <thead>
+        <tr>
+          <th>項目</th><th>値</th><th>補足</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>検証回数</strong></td><td>28回</td><td>TX新型のみ</td></tr>
+        <tr><td><strong>OK</strong></td><td>21回（75.0%）</td><td>音声がクリアで内容理解に支障なし</td></tr>
+        <tr><td><strong>PU</strong></td><td>7回（25.0%）</td><td>途切れや干渉が観測</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.2 地域別の傾向（TX新型の観察）</h3>
+    <table class="observation-table">
+      <thead>
+        <tr>
+          <th>地域</th><th>検証回数</th><th>OK</th><th>PU</th><th>要点</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>イタリア</strong></td>
+          <td>（全体22回のうち新型中心）</td>
+          <td class="subtle">※数値は主に新型で観測</td>
+          <td class="subtle">※環境が複雑</td>
+          <td>歴史的建造物・他社ガイド機器の使用などで干渉/マルチパスが出やすい傾向</td>
+        </tr>
+        <tr>
+          <td><strong>スペイン</strong></td>
+          <td>（全体13回のうち新型中心）</td>
+          <td class="subtle">※比較的安定</td>
+          <td class="subtle">※PU少</td>
+          <td>比較的電波環境が良好で、同等条件下では安定している傾向</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <h3>3.3 出力設定別（TX新型のみ）</h3>
+    <table class="observation-table">
+      <thead>
+        <tr>
+          <th>出力設定</th><th>検証回数</th><th>OK</th><th>PU</th><th>運用メモ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>4（11.5mW）</strong></td><td>8回</td><td>5回</td><td>3回</td>
+          <td>環境が厳しいとPUが出る可能性。</td>
+        </tr>
+        <tr>
+          <td><strong>5（12mW）</strong></td><td>17回</td><td>14回</td><td>3回</td>
+          <td><strong>標準推奨</strong>。最も使用頻度が高く、概ね安定。</td>
+        </tr>
+        <tr>
+          <td><strong>6（38mW）</strong></td><td>1回</td><td>0回</td><td>1回</td>
+          <td>高密度/干渉が疑われる環境で有効なだが消費電力が高い。また違法</td>
+        </tr>
+        <tr>
+          <td><strong>7（58.5mW）</strong></td><td>2回</td><td>2回</td><td>0回</td>
+          <td>高密度/干渉が疑われる環境で有効なだが消費電力が高い。また違法</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>3.4 環境タイプ別（TX新型中心の観測）</h3>
+    <table class="observation-table">
+      <thead>
+        <tr>
+          <th>環境タイプ</th><th>検証回数</th><th>OK</th><th>PU</th><th>平均距離</th><th>要点</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>屋内</strong></td><td>9回</td><td>7回</td><td>2回</td><td>61.5m</td>
+          <td>同一室内では通信安定。壁・遮蔽・他社機器の干渉で影響が出る場合あり。</td>
+        </tr>
+        <tr>
+          <td><strong>屋外・建物多い</strong></td><td>8回</td><td>6回</td><td>2回</td><td>73.5m</td>
+          <td>車両・建物反射/遮蔽で一時的に途切れるが出ることあり。</td>
+        </tr>
+        <tr>
+          <td><strong>屋外・見通し良好</strong></td><td>15回</td><td>9回</td><td>6回</td><td>81.2m</td>
+          <td>見通しが良い場所でも他社機器が多い環境では干渉が顕著。チャンネル選択が重要。</td>
+        </tr>
+        <tr>
+          <td><strong>その他</strong></td><td>3回</td><td>3回</td><td>0回</td><td>33.5m</td>
+          <td>人が多く集まる広場や市場などでも通信安定。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-divider"></div>
+
+    <h2>4. 既存機との比較 <span class="pill"></span></h2>
+    <div class="info-box">
+      <ul class="list">
+        <li><strong>TX新型：</strong>音質がクリアで、PU（軽微な途切れ）があっても内容理解に支障が出にくい。</li>
+        <li><strong>TX800白 / TX700青：</strong>挙動は新型機同様、新型機と音質の差が顕著。ホワイトノイズが多い</li>
+      </ul>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h2>5. 運用ガイドライン案（TX新型前提）</h2>
+    <div class="info-box">
+      <h3>推奨設定</h3>
+      <ul class="list">
+        <li><strong>標準：</strong>出力5（12mW）</li>
+      </ul>
+
+      <h3>距離の目安</h3>
+      <ul class="list">
+        <li><strong>推奨：</strong>20〜40m（通常ツアー）</li>
+        <li><strong>許容：</strong>40〜80m（環境による）</li>
+        <li><strong>参考：</strong>見通し良好で100m以上も可能</li>
+      </ul>
+
+      <h3>チャンネル運用</h3>
+      <ul class="list">
+        <li>干渉が疑われたら、距離を詰める前に<strong>チャンネル変更</strong>を優先。</li>
+        <li>安定していたチャンネル例：1 / 7 / 10 / 11（現場で状況により変動）</li>
+      </ul>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <h2>6. 今後の対応</h2>
+    <div class="info-box">
+      <ul class="list">
+        <li>出力値を刻む設定</li>
+        <li>AGCを設定の変更</li>
+      </ul>
+    </div>
+
+    <div class="foot">
+    <p>作成日: 2025年12月11日</p>
+    <p>作成者: 村井 純</p>
+    </div>
+  </div>
+</body>
+</html>
